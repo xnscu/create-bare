@@ -289,7 +289,7 @@ async function init() {
         }
         const content = ejs.render(template, context)
 
-        fs.writeFileSync(dest, content)
+        fs.writeFileSync(dest, content, 'utf8')
         fs.unlinkSync(filepath)
       }
     }
@@ -327,6 +327,9 @@ async function init() {
       githubUsername
     })
   )
+  console.log(`\nDone. to create this project as a github repo, run:\n`)
+  console.log(bold(green(`git init`)))
+  console.log(bold(green(`gh repo create ${githubUsername}/${projectName} --public --source=. --remote=origin`)))
 }
 
 init().catch((e) => {
