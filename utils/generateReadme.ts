@@ -10,7 +10,7 @@ export default function generateReadme({
 
   let readme = `# ${projectName}
 
-This template should help get you started developing with xiangnanscu/create-m.
+This template should help get you started developing with xiangnanscu/create-bare.
 
 `
   let npmScriptsDescriptions = `

@@ -4,7 +4,7 @@
   "description": "create repo",
   "type": "module",
   "bin": {
-    "create-m": "outfile.cjs"
+    "create-bare": "outfile.cjs"
   },
   "files": [
     "outfile.cjs",
@@ -12,12 +12,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xiangnanscu/create-m.git"
+    "url": "git+https://github.com/xiangnanscu/create-bare.git"
   },
   "bugs": {
-    "url": "https://github.com/xiangnanscu/create-m/issues"
+    "url": "https://github.com/xiangnanscu/create-bare/issues"
   },
-  "homepage": "https://github.com/xiangnanscu/create-m",
+  "homepage": "https://github.com/xiangnanscu/create-bare",
   "scripts": {
     "prerc": "npm --no-git-tag-version version minor",
     "rc": "yarn push",

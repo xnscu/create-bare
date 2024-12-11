@@ -1,4 +1,4 @@
-const slogan = 'create-m - Elegant, performant and productive router for Openresty'
+const slogan = 'create-bare - Elegant, performant and productive router for Openresty'
 const colorizedslogan = require('gradient-string')([
   { color: '#42d392', pos: 0 },
   { color: '#42d392', pos: 0.1 },

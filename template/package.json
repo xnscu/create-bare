@@ -1,7 +1,7 @@
 {
-  "name": "create-m project",
+  "name": "create-bare project",
   "version": "1.0.0",
-  "description": "project template for create-m",
+  "description": "project template for create-bare",
   "scripts": {
     "prerc": "npm --no-git-tag-version version minor",
     "rc": "yarn push",
