@@ -1,7 +1,7 @@
 {
-  "name": "create-m",
+  "name": "create-bare",
   "version": "0.1.0",
-  "description": "high performance router",
+  "description": "create repo",
   "type": "module",
   "bin": {
     "create-m": "outfile.cjs"
