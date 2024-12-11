@@ -23,6 +23,14 @@ import util from 'util'
 const exec = util.promisify(require('child_process').exec)
 
 console.log('version:', version)
+
+interface PromptResult {
+  projectName?: string
+  packageName?: string
+  shouldOverwrite?: boolean
+  githubUsername?: string
+}
+
 function isValidPackageName(projectName) {
   return /^(?:@[a-z0-9-*~][a-z0-9-*._~]*\/)?[a-z0-9-~][a-z0-9-._~]*$/.test(projectName)
 }
@@ -73,6 +81,7 @@ function emptyDir(dir) {
   )
 }
 
+type CallbackFunction = (dataStore: Record<string, any>) => Promise<void>
 
 async function init() {
   console.log()
@@ -122,7 +131,7 @@ async function init() {
 
   const forceOverwrite = argv.force
 
-  let result = {}
+  let result: PromptResult = {}
 
   try {
     // Prompts:
@@ -172,9 +181,16 @@ async function init() {
         {
           name: 'packageName',
           type: () => (isValidPackageName(targetDir) ? null : 'text'),
-          message: 'Project name:',
+          message: 'Package name:',
           initial: () => toValidPackageName(targetDir),
           validate: (dir) => isValidPackageName(dir) || 'Invalid package.json name'
+        },
+        {
+          name: 'githubUsername',
+          type: 'text',
+          message: 'Github username:',
+          initial: () => 'githuber',
+          validate: (dir) => isValidPackageName(dir) || 'Invalid repo name'
         }
       ],
       {
@@ -191,23 +207,15 @@ async function init() {
   // `initial` won't take effect if the prompt type is null
   // so we still have to assign the default values here
   const {
-    // projectName = targetDir,
-    // packageName = projectName ?? defaultProjectName,
+    projectName = targetDir,
+    packageName = projectName ?? defaultProjectName,
     shouldOverwrite = argv.force,
-    isProduction = argv.prod,
-    needsHttps = argv.https ?? true,
-    needsJsx = argv.jsx ?? true,
-    needsTypeScript = argv.typescript ?? true,
-    needsRouter = argv.router ?? true,
-    needsPinia = argv.pinia ?? true,
-    needsEslint = (argv.eslint || argv['eslint-with-prettier']) ?? true,
-    needsPrettier = argv['eslint-with-prettier'] ?? true
+    githubUsername = 'githuber'
   } = result
 
-  const PGPASSWORD = isProduction ? random(16) : 'postgres'
   const root = path.join(cwd, targetDir)
-  const projectName = path.basename(root)
-  const packageName = projectName ?? defaultProjectName
+  // const projectName = path.basename(root)
+  // const packageName = projectName ?? defaultProjectName
 
   if (fs.existsSync(root) && shouldOverwrite) {
     emptyDir(root)
@@ -233,7 +241,7 @@ async function init() {
   // when bundling for node and the format is cjs
   // const templateRoot = new URL('./template', import.meta.url).pathname
   const templateRoot = path.resolve(__dirname, 'template')
-  const callbacks = []
+  const callbacks: CallbackFunction[] = []
   const render = function render(templateName) {
     const templateDir = path.resolve(templateRoot, templateName)
     renderTemplate(templateDir, root, callbacks)
@@ -266,17 +274,15 @@ async function init() {
   preOrderDirectoryTraverse(
     root,
     () => {},
-    (filepath) => {
+    (filepath:string) => {
       if (filepath.endsWith('.ejs') && filepath.indexOf('/template/') === -1) {
         const template = fs.readFileSync(filepath, 'utf-8')
         const dest = filepath.replace(/\.ejs$/, '')
         const commandContext =
           path.basename(filepath) !== 'vite.config.js.ejs' ? normalizedArgv : argv
         const context = {
-          ...envContext,
           ...dataStore[dest],
           ...commandContext,
-          PGPASSWORD,
           TARGET_DIR: targetDir,
           PGDATABASE: projectName,
           VITE_NAME: projectName
@@ -297,41 +303,15 @@ async function init() {
   // (Currently it's only `cypress/plugin/index.ts`, but we might add more in the future.)
   // (Or, we might completely get rid of the plugins folder as Cypress 10 supports `cypress.config.ts`)
 
-  if (needsTypeScript) {
-    // Convert the JavaScript template to the TypeScript
-    // Check all the remaining `.js` files:
-    //   - If the corresponding TypeScript version already exists, remove the `.js` version.
-    //   - Otherwise, rename the `.js` file to `.ts`
-    // Remove `jsconfig.json`, because we already have tsconfig.json
-    // `jsconfig.json` is not reused, because we use solution-style `tsconfig`s, which are much more complicated.
-    preOrderDirectoryTraverse(
-      root,
-      () => {},
-      (filepath) => {
-        if (filepath.endsWith('.js')) {
-          // const tsFilePath = filepath.replace(/\.js$/, '.ts')
-          // if (fs.existsSync(tsFilePath)) {
-          //   fs.unlinkSync(filepath)
-          // } else {
-          //   fs.renameSync(filepath, tsFilePath)
-          // }
-        } else if (path.basename(filepath) === 'jsconfig.json') {
-          fs.unlinkSync(filepath)
-        }
+  preOrderDirectoryTraverse(
+    root,
+    () => {},
+    (filepath) => {
+      if (filepath.endsWith('.ts')) {
+        fs.unlinkSync(filepath)
       }
-    )
-  } else {
-    // Remove all the remaining `.ts` files
-    preOrderDirectoryTraverse(
-      root,
-      () => {},
-      (filepath) => {
-        if (filepath.endsWith('.ts')) {
-          fs.unlinkSync(filepath)
-        }
-      }
-    )
-  }
+    }
+  )
 
   // Instructions:
   // Supported package managers: pnpm > yarn > npm
@@ -342,10 +322,9 @@ async function init() {
   fs.writeFileSync(
     path.resolve(root, 'README.md'),
     generateReadme({
-      projectName: result.projectName ?? result.packageName ?? defaultProjectName,
+      projectName,
       packageManager,
-      needsTypeScript,
-      needsEslint
+      githubUsername
     })
   )
 }
