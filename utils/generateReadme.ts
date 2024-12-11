@@ -10,26 +10,21 @@ export default function generateReadme({
 
   let readme = `# ${projectName}
 
-This template should help get you started developing with xiangnanscu/create-bare.
+This template should help get you started developing with xnscu/create-bare.
 
 `
   let npmScriptsDescriptions = `
-## Start server
+## as github repo
 
 \`\`\`sh
-${commandFor('start')}
+git init && gh repo create "${projectName}" --public --source=. --remote=origin
 \`\`\`
 
-## Test routes
+or private repo:
 
 \`\`\`sh
-curl http://localhost:8080
+git init && gh repo create "${projectName}" --private --source=. --remote=origin
 \`\`\`
-
-## Add routes
-
-Go to \`api\` folder, there're some files already. Add your own routes in there.
-
 `
   readme += npmScriptsDescriptions
 
